@@ -81,8 +81,43 @@ apiRouter.use(function(req,res,next){
   next(); //remember always call this method on midleware, if not will die!
 });
 
+
+//middleware check token
+apiRouter.use(function(req,res,next){
+  var token = req.body.token || req.param('token') || req.headers['x-access-token'];
+
+  if(token){
+    jwt.verify(token, secret, function(err,decoded){
+      if(err){
+        return res.status(403).send({
+          success: false,
+          message: 'Failed to authenticate token.'
+        });
+      }else{
+        req.decoded= decoded;
+        next();
+      }
+    });
+  }else{
+    //if there is no token
+    //return 403
+    return res.status(403).send({
+      success:false,
+      message: 'No token provided'
+    });
+  }
+
+
+
+
+});
+
 apiRouter.get('/',function(req,res){
   res.json({message:'hoore! selamat datang di api kita'});
+});
+
+apiRouter.get('/me',function(req,res){
+  res.send(req.decoded);
 });
 
 //user Route
